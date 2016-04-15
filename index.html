@@ -1,0 +1,101 @@
+<html>
+
+<head>
+  <title>Just Eggs - Online Store</title>
+  <style>
+    body { font-family: "Comic Sans MS", cursive, sans-serif }
+    .logo { text-align: center }
+    .category { text-align: center; cursor: pointer; }
+    #products { text-align: left; }
+    .price {}
+    a { text-decoration: none; color: blue }
+    a:hover { text-decoration: underline; cursor: pointer;}
+  </style>
+  <script src="vendor/jquery-2.2.3.js"></script>
+  <script>
+    function addDropShadow(tag) {
+      tag.parentElement.style.backgroundColor = "black";
+    }
+    function removeDropShadow(tag) {
+      tag.parentElement.style.backgroundColor = "";
+    }
+    function addToCart(item) {
+      var cookie = readCookie("shoppingCart");
+      eraseCookie("shoppingCart");
+      var cart = eval(cookie) || [];
+      cart.push(item);
+      writeCookie('shoppingCart', '[' + cart.join(',') + ']');
+      $('#itemCount').html(cartCount());
+    }
+    function emptyCart() {
+      writeCookie("shoppingCart", "[]");
+    }
+    function cartCount() {
+      return eval(readCookie('shoppingCart')).length;
+    }
+    function writeCookie(name, value) {
+      document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + "; path=/";
+    }
+    function eraseCookie(name) {
+      writeCookie(name, "", -1);
+    }
+    function readCookie(name) {
+      var nameEQ = encodeURIComponent(name) + "=";
+      var ca = document.cookie.split(';');
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+      }
+      return "";
+    }
+    function selectedCategory(category) {
+      $('#products').html('');
+      $.get('api/' + category + '.json', function(products) {
+        for(i = 0; i < products.length; i++) {
+          $.get('api/' + products[i] + '.json', function(product) {
+            console.log(product);
+            var productHtml = '<table width="100%" class="product"><tr>';
+            productHtml += '<td width="200"><img height="100" src="' + product.image + '"></td>';
+            productHtml += '<td valign="top"><div><b>' + product.name + '</b></div>';
+            productHtml += '<div>' + product.desc + '</div>';
+            productHtml += '<div>' + product.price + '</div></td>';
+            productHtml += '<td width="200" valign="top"><a onclick="addToCart(' + product.id + ')">Add to Cart</a></td>';
+            productHtml += '</tr></table>';
+            var existingHtml = $('#products').html();
+            $('#products').html(existingHtml + productHtml);
+          });
+        }
+      });
+    }
+    $(function() {
+      $('#itemCount').html(cartCount());
+      $('#emptyCart').on('click', function() {
+        emptyCart();
+        $('#itemCount').html(cartCount());
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <table style="width: 100%">
+    <tr>
+      <td class="logo" colspan="3"><img src="images/just-eggs-logo.png"></td>
+    </tr>
+    <tr>
+      <td class="category"><img onmouseenter="addDropShadow(this)" onmouseleave="removeDropShadow(this)" onclick="selectedCategory('easter')" height="35" src="images/easter-eggs-text.png"></td> 
+      <td class="category"><img onmouseenter="addDropShadow(this)" onmouseleave="removeDropShadow(this)" onclick="selectedCategory('organic')" height="35" src="images/organic-eggs-text.png"></td>
+      <td class="category"><img onmouseenter="addDropShadow(this)" onmouseleave="removeDropShadow(this)" onclick="selectedCategory('chair')" height="35" src="images/egg-chairs-text.png"></td>
+    </tr>
+    <tr>
+      <td colspan="3">Your Cart: <span id="itemCount">0</span> items,
+        <a href="cart.html">View<a/>, <a id="emptyCart">Empty</a></td>
+    </tr>
+    <tr>
+      <td id="products" colspan="3"></td>
+    </tr>
+  </table>
+</body>
+
+</html>

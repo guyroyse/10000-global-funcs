@@ -1,0 +1,95 @@
+<html>
+
+<head>
+  <title>Just Eggs - Your Cart</title>
+  <style>
+    body { font-family: "Comic Sans MS", cursive, sans-serif }
+    .logo { text-align: center }
+    #products { text-align: left; }
+    a { text-decoration: none; color: blue }
+    a:hover { text-decoration: underline; cursor: pointer;}
+    h1 { text-align: center }
+  </style>
+  <script src="vendor/jquery-2.2.3.js"></script>
+  <script>
+    function emptyCart() {
+      writeCookie("shoppingCart", "[]");
+    }
+    function cartCount() {
+      return eval(readCookie('shoppingCart')).length;
+    }
+    function writeCookie(name, value) {
+      document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + "; path=/";
+    }
+    function eraseCookie(name) {
+      writeCookie(name, "", -1);
+    }
+    function readCookie(name) {
+      var nameEQ = encodeURIComponent(name) + "=";
+      var ca = document.cookie.split(';');
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+      }
+      return "";
+    }
+    $(function() {
+
+      $('#itemCount').html(cartCount());
+
+      $('#emptyCart').on('click', function() {
+        emptyCart();
+        $('#itemCount').html(cartCount());
+        $('#cart').html('');
+      });
+
+      var items = eval(readCookie('shoppingCart'));
+      var itemsAndQuantity = [];
+      for(i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (itemsAndQuantity[item] == undefined) {
+          itemsAndQuantity[item] = 1;
+        } else {
+          itemsAndQuantity[item] += 1;
+        }
+      }
+
+      for(i = 0; i < itemsAndQuantity.length; i++) {
+        if (itemsAndQuantity[i] != undefined) {
+          (function(quantity) {
+            $.get('api/' + i + '.json', function(product) {
+              var productHtml = '<table width="100%" class="product"><tr>';
+              productHtml += '<td width="200"><img height="100" src="' + product.image + '"></td>';
+              productHtml += '<td valign="top"><div><b>' + product.name + '</b></div>';
+              productHtml += '<div>' + product.desc + '</div>';
+              productHtml += '<div>' + product.price + '</div></td>';
+              productHtml += '<td width="200" valign="top">Quantity: ' + quantity + '</td>';
+              productHtml += '</tr></table>';
+              var existingHtml = $('#cart').html();
+              $('#cart').html(existingHtml + productHtml);
+            });
+          })(itemsAndQuantity[i]);
+        }
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <table style="width: 100%">
+    <tr>
+      <td class="logo"><a href="index.html"><img src="images/just-eggs-logo.png"></a></td>
+    </tr>
+    <tr>
+      <td>
+        <h1>Your Cart (<span id="itemCount">0</span> items, <a id="emptyCart">empty</a>)</h1>
+      </td>
+    </tr>
+    <tr>
+      <td id="cart"></td>
+    </tr>
+  </table>
+</body>
+
+</html>
